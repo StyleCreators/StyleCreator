@@ -1,5 +1,8 @@
 package com.fishpool.stylecreator;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
@@ -15,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static com.fishpool.stylecreator.ConstValues.*;
+import static com.fishpool.stylecreator.LoginActivity.*;
 
 /**
  * 提供一些工具函数
@@ -89,7 +93,26 @@ public class ToolFunctions {
      * 检查用户是否登录
      * @return 登录返回true
      */
-    public static boolean checkLogin(){
-        return false;
+    public static boolean checkLogin(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        return sharedPreferences.getBoolean(TagAlreadySignIn,false);
+    }
+
+    public static boolean signIn(String email,String password,Handler handler){
+        //TODO 还需要实现登录操作
+        Message message = Message.obtain();
+        message.what = MessageTypes.SignIn;
+        message.obj = Strings.SignInSucessfully;
+        handler.sendMessage(message);
+        return true;
+    }
+
+    public static boolean signUp(String email,String password,String confirmPassword,Handler handler){
+        //TODO 还需要实现注册操作
+        Message message = Message.obtain();
+        message.what = MessageTypes.SignUp;
+        message.obj = Strings.SignUpSucessfully;
+        handler.sendMessage(message);
+        return true;
     }
 }

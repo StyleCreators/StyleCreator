@@ -30,6 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.fishpool.stylecreator.ConstValues.*;
+import static com.fishpool.stylecreator.LoginActivity.SIGN_IN_SUCCESSFULLY;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,8 +59,11 @@ public class MainActivity extends AppCompatActivity {
             hasReadStoragePermission = true;
         }
         //检查是否登录
-        if(ToolFunctions.checkLogin()){
+        if(ToolFunctions.checkLogin(getApplicationContext())){
             //启动登录界面
+            //startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
+        }else {
+            startActivityForResult(LoginActivity.createIntent(this, true),RequestCodes.RequestSignUp);
         }
     }
 
@@ -97,8 +101,9 @@ public class MainActivity extends AppCompatActivity {
     private void showBitmapFromMessageString(Message msg){
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
         String path = (String) msg.obj;
+        //TODO 作弊
         String pathCheate = "/storage/emulated/0/StyleCreator/zuobi.jpeg_";   //作弊
-        m_imageView.setImageBitmap(ToolFunctions.getLoacalBitmap(pathCheate));
+        m_imageView.setImageBitmap(ToolFunctions.getLoacalBitmap(path));
     }
     private void showBitmapFromMessageObj(Message msg){
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
@@ -204,18 +209,59 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        //获取图片路径
-        if (requestCode == RequestCodes.RequestChooseOnePicture
-                && resultCode == RESULT_OK && data != null) {
-            this.getChosenImage(data);
-        }else if (requestCode == RequestCodes.RequestCrop && resultCode == RESULT_OK && data != null) {
-            this.getCroppedImage(data);
+        if(resultCode == RESULT_CANCELED){
+            showMessage(Strings.OperationCanceled);
+            return;
         }
-        else{
-            Log.d(TAG, "onActivityResult: "+resultCode);
+        switch (requestCode){
+            case RequestCodes.RequestChooseOnePicture:
+                this.processChooseOnePictureResult(resultCode,data);
+                break;
+            case RequestCodes.RequestCrop:
+                this.processCropResult(resultCode,data);
+                break;
+            case RequestCodes.RequestSignIn:
+                this.processSignInResult(resultCode,data);
+                break;
+            case RequestCodes.RequestSignUp:
+                this.processSignUpResult(resultCode,data);
+                break;
+            default:
+                break;
         }
     }
-
+    private void processChooseOnePictureResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK && data != null) {
+            this.getChosenImage(data);
+        }
+    }
+    private void processCropResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK && data != null) {
+            this.getCroppedImage(data);
+        }
+    }
+    private void processSignInResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK && data != null) {
+            Bundle extras = data.getExtras();
+            try{
+                boolean successful = extras.getBoolean(SIGN_IN_SUCCESSFULLY);
+                Log.d(TAG, "processSignInResult: "+successful);
+            }catch (Exception e){
+                Log.d(TAG, "processSignInResult: "+e.toString());
+            }
+        }
+    }
+    private void processSignUpResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK && data != null) {
+            Bundle extras = data.getExtras();
+            try{
+                boolean successful = extras.getBoolean(SIGN_IN_SUCCESSFULLY);
+                Log.d(TAG, "processSignInResult: "+successful);
+            }catch (Exception e){
+                Log.d(TAG, "processSignInResult: "+e.toString());
+            }
+        }
+    }
     private void getChosenImage(Intent data){
         Uri selectedImage = data.getData();
         String[] filePathColumn = {MediaStore.Images.Media.DATA};

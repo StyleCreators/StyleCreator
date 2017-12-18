@@ -1,4 +1,4 @@
-package cn.edu.scu.creator.networkclient;
+package com.fishpool.stylecreator;
 
 import android.os.Environment;
 import android.util.Log;
@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static com.fishpool.stylecreator.ConstValues.*;
+
 /**
  * Created by wang on 2017/3/3.
  * 日志纪录类
@@ -16,8 +18,7 @@ import java.util.Date;
 
 public final class Logger {
     private static String fileDir = Environment.getExternalStorageDirectory().getPath()+"/StyleCreator";
-    private static String filePath = Environment.getExternalStorageDirectory().getPath()+"/StyleCreator/srun.log";
-    private final static  String TAG = "StyleCreator";
+    private static String filePath = Environment.getExternalStorageDirectory().getPath()+"/StyleCreator/run.log";
 
     /**
      * 将日志写入SD卡

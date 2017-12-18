@@ -26,7 +26,6 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.File;
-import java.net.URLEncoder;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,15 +46,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         m_imageView = (ImageView) findViewById(R.id.imageView);
-        m_btChoosePicture = (Button)findViewById(R.id.button);
+        m_btChoosePicture = (Button)findViewById(R.id.btUploadPicture);
         m_btChoosePicture.setOnClickListener(onClickListener);
         m_loadingProgressbar = (ProgressBar)findViewById(R.id.loadingProgressBar);
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
+        //检查权限
         if(isHeigerThanAnroidM)
             checkStoragePermission();
         else{
             hasWriteStoragePermission = true;
             hasReadStoragePermission = true;
+        }
+        //检查是否登录
+        if(ToolFunctions.checkLogin()){
+            //启动登录界面
         }
     }
 

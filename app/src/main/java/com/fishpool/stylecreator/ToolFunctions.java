@@ -84,4 +84,12 @@ public class ToolFunctions {
         }
         return bitmap;
     }
+
+    /**
+     * 检查用户是否登录
+     * @return 登录返回true
+     */
+    public static boolean checkLogin(){
+        return false;
+    }
 }

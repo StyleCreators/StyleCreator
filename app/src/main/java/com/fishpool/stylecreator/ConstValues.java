@@ -9,6 +9,11 @@ public class ConstValues {
     public final static String TAG = "StyleCreator";
 
     public static class Strings{
+        public final static String SignIn = "登录";
+        public final static String SignUp = "注册";
+        public final static String SignOut = "注销";
+        public final static String EditPassword = "修改密码";
+        public final static String PersonalInfo = "个人信息";
         public final static String SignInSucessfully = "登录成功";
         public final static String SignInFailed = "登录失败";
         public final static String SignUpSucessfully = "注册成功";

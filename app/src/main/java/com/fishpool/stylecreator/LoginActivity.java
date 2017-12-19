@@ -62,7 +62,6 @@ public class LoginActivity extends AppCompatActivity {
         cbAutoLogin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.d(TAG, "onCheckedChanged: "+isChecked);
                 config = preferences.edit();
                 config.putString(TagEmail, etEmail.getText().toString().trim());
                 config.putBoolean(TagAutoLogin,isChecked);
@@ -179,6 +178,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(!isSignUp){//不是注册，隐藏确认密码框
                     etConfirmPassword.setVisibility(View.INVISIBLE);
                 }else{
+                    btLogin.setText(Strings.SignUp);
                     cbAutoLogin.setVisibility(View.INVISIBLE);
                 }
             }

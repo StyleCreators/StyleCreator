@@ -22,11 +22,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -48,6 +52,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageView m_imageView;
     private Button m_btChoosePicture;
     private ProgressBar m_loadingProgressbar;
+    //滑动相册相关
+    private HorizontalScrollView m_horizontalScrollView;
+    private LinearLayout mGallery;
+    private int[] mImgIds;
+    private LayoutInflater mInflater;
 
     //滑动菜单相关
     private ConstraintLayout layout;
@@ -75,18 +84,38 @@ public class MainActivity extends AppCompatActivity {
             hasWriteStoragePermission = true;
             hasReadStoragePermission = true;
         }
-        //检查是否登录
-        if(ToolFunctions.checkLogin(getApplicationContext())){
-            //启动登录界面
-            //startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
-        }else {
-            startActivityForResult(LoginActivity.createIntent(this, true),RequestCodes.RequestSignUp);
+        //检查是否登录，未登录，则启动登录界面
+        if(!ToolFunctions.checkLogin(getApplicationContext())){
+            startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
+        }else{//载入相册
+            mImgIds = ToolFunctions.getPictureIds();
+            initGallery();
+        }
+    }
+    private void initGallery() {
+        mGallery = (LinearLayout) findViewById(R.id.id_gallery);
+        ViewGroup.LayoutParams layout= new ViewGroup.LayoutParams(200,200);
+        for (int i = 0; i < mImgIds.length; i++)
+        {
+            ImageView imageView = new ImageView(this);
+            //imageView.setLayoutParams(layout);
+            final int index = i;
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    m_imageView.setImageResource(mImgIds[index]);
+                }
+            });
+            imageView.setAdjustViewBounds(true);
+            imageView.setScaleType(ImageView.ScaleType. CENTER_CROP);
+            imageView.setImageResource(mImgIds[i]);
+            mGallery.addView(imageView);
         }
     }
 
     private void createSlideMenu(){
         menuList = ToolFunctions.getMenuList();
-        menuArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.layout_item,menuList);
+        menuArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.item_menu,menuList);
         layout = (ConstraintLayout)findViewById(R.id.main_layout);
         menuDrawerLayout = (DrawerLayout)findViewById(R.id.menuDrawerLayout);
         menuDrawerLayout.addDrawerListener(drawerListener);
@@ -95,10 +124,11 @@ public class MainActivity extends AppCompatActivity {
         menuListView.setOnItemClickListener(onItemClickListener);
     }
 
-    private int clickedItemPosition = 7;
     /**
      * DrawerLayout的监听器
      */
+    private int clickedItemPosition = 7;
+    private MainActivity activity = this;
     private DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerSlide(View drawerView, float slideOffset) {}
@@ -111,16 +141,16 @@ public class MainActivity extends AppCompatActivity {
             isMenuDrawerLayoutOpened = false;
             switch (clickedItemPosition) {
                 case 0:
+                    startActivityForResult(LoginActivity.createIntent(activity,false),
+                            RequestCodes.RequestSignIn);
                     break;
-                case 1:
+                case 1://注册被点击
+                    startActivityForResult(LoginActivity.createIntent(activity, true),
+                            RequestCodes.RequestSignUp);
                     break;
                 case 2:
                     break;
                 case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
                     break;
                 default:
                     break;
@@ -145,8 +175,7 @@ public class MainActivity extends AppCompatActivity {
      * 重写返回事件，当处于登录状态时实现Home键的功能，否则直接调用原来的返回键功能
      */
     @Override
-    public void onBackPressed()
-    {
+    public void onBackPressed() {
         if(!isMenuDrawerLayoutOpened) {
             super.onBackPressed();
 //            Intent intent = new Intent(Intent.ACTION_MAIN);

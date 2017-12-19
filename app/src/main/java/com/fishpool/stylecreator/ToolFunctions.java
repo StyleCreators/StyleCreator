@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -125,10 +127,16 @@ public class ToolFunctions {
     public static List<String> getMenuList(){
 
         List<String> data = new ArrayList<>();
-        data.add("下线所有设备");
-        data.add("选择流量出口");
-        data.add("更换背景图片");
-        data.add("恢复默认背景");
+        data.add(Strings.SignIn);
+        data.add(Strings.SignUp);
+        data.add(Strings.PersonalInfo);
         return data;
+    }
+
+    public static int[] getPictureIds(){
+        int[] mImgIds =  new int[] { R.drawable.index0, R.drawable.index1,R.drawable.index2,
+                R.drawable.index3, R.drawable.index4, R.drawable.index5,
+                R.drawable.index6 };
+        return mImgIds;
     }
 }

@@ -23,6 +23,10 @@ public class ConstValues {
         public final static String PasswordIsEmpty = "密码为空";
         public final static String ComfirmPasswordIsEmpty = "确认密码为空";
         public final static String PasswordNotEqualWithConfirmPassword = "两次密码不同";
+        public final static String RemoveImage = "确认删除图片吗？";
+        public final static String Yes = "确认";
+        public final static String No = "取消";
+        public final static String Cancel = "取消";
     }
 
     //消息类型

@@ -39,6 +39,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.zip.CRC32;
 
 import static com.fishpool.stylecreator.ConstValues.*;
 import static com.fishpool.stylecreator.LoginActivity.SIGN_IN_SUCCESSFULLY;
@@ -50,13 +51,13 @@ public class MainActivity extends AppCompatActivity {
 
     private final static boolean isHeigerThanAnroidM = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     private ImageView m_imageView;
-    private Button m_btChoosePicture;
     private ProgressBar m_loadingProgressbar;
     //滑动相册相关
     private HorizontalScrollView m_horizontalScrollView;
     private LinearLayout mGallery;
     private int[] mImgIds;
     private LayoutInflater mInflater;
+    private List<String> imagePaths;
 
     //滑动菜单相关
     private ConstraintLayout layout;
@@ -71,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         m_imageView = (ImageView) findViewById(R.id.imageView);
-        m_btChoosePicture = (Button)findViewById(R.id.btUploadPicture);
-        m_btChoosePicture.setOnClickListener(onClickListener);
         m_loadingProgressbar = (ProgressBar)findViewById(R.id.loadingProgressBar);
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
         //创建滑动菜单
@@ -88,28 +87,89 @@ public class MainActivity extends AppCompatActivity {
         if(!ToolFunctions.checkLogin(getApplicationContext())){
             startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
         }else{//载入相册
-            mImgIds = ToolFunctions.getPictureIds();
             initGallery();
         }
     }
     private void initGallery() {
-        mGallery = (LinearLayout) findViewById(R.id.id_gallery);
-        ViewGroup.LayoutParams layout= new ViewGroup.LayoutParams(200,200);
-        for (int i = 0; i < mImgIds.length; i++)
+//        mImgIds = ToolFunctions.getPictureIds();
+        //添加+号的那张图
         {
+            mImgIds = new int[]{R.drawable.add};
+            mGallery = (LinearLayout) findViewById(R.id.id_gallery);
             ImageView imageView = new ImageView(this);
-            //imageView.setLayoutParams(layout);
-            final int index = i;
+            imageView.setId(mImgIds[0]);
             imageView.setOnClickListener(new View.OnClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.M)
                 @Override
                 public void onClick(View v) {
-                    m_imageView.setImageResource(mImgIds[index]);
+                    if (hasReadStoragePermission)
+                        chooseOnePicture();
                 }
             });
             imageView.setAdjustViewBounds(true);
-            imageView.setScaleType(ImageView.ScaleType. CENTER_CROP);
-            imageView.setImageResource(mImgIds[i]);
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setImageResource(mImgIds[0]);
             mGallery.addView(imageView);
+        }
+        for (String path:ToolFunctions.getOriginImagePaths()) {
+            addImage(path);
+        }
+    }
+    private void addImage(String path){
+        ImageView imageView = new ImageView(this);
+        //imageView.setLayoutParams(layout);
+        String[] list = path.split("/");
+        long id = Long.parseLong(list[list.length-1]);
+        imageView.setId((int)id);
+        Bitmap bitMap = ToolFunctions.getLoacalSmallBitmap(path);
+        bitMap = ToolFunctions.addWhiteBarForBitmap(bitMap);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View v) {
+                //TODO 这里怎么搞？暂时从本地读取风格化好的照片
+                loadStyledImage(v.getId());
+            }
+        });
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                removeImage(v);
+                return false;
+            }
+        });
+        imageView.setAdjustViewBounds(true);
+        imageView.setScaleType(ImageView.ScaleType. CENTER_CROP);
+        imageView.setImageBitmap(bitMap);
+        mGallery.addView(imageView);
+    }
+    private void removeImage(final View v){
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setMessage(Strings.RemoveImage)
+                .setPositiveButton(Strings.Yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ToolFunctions.removePicFromStorage(v.getId());
+                        mGallery.removeView(v);
+                    }
+                }).setNegativeButton(Strings.No, null).create();
+        dialog.show();
+    }
+
+    /**
+     * 根据id来载入风格化好的图片
+     * @param id
+     */
+    private void loadStyledImage(int id){
+        //根据id生成图片路径
+        //TODO 完成生成风格图片的代码之后，这里需要修改成getStyledPathPrefix
+//        String path = ToolFunctions.getStyledPathPrefix()+id;
+        String path = ToolFunctions.getOriginPathPrefix()+id;
+        Bitmap bm = ToolFunctions.getLoacalBitmap(path);
+        if(bm != null) {
+            m_imageView.setImageBitmap(bm);
+        }else{
+            Log.d(TAG, "Main.E0172: 图片不存在");
         }
     }
 
@@ -123,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
         menuListView.setAdapter(menuArrayAdapter);
         menuListView.setOnItemClickListener(onItemClickListener);
     }
-
     /**
      * DrawerLayout的监听器
      */
@@ -186,20 +245,6 @@ public class MainActivity extends AppCompatActivity {
             menuDrawerLayout.closeDrawer(Gravity.END);
         }
     }
-
-    private View.OnClickListener onClickListener = new View.OnClickListener() {
-        @RequiresApi(api = Build.VERSION_CODES.M)
-        @Override
-        public void onClick(View v) {
-//            try {
-//                ToolFunctions.getBitmapFromUrl(handler,"https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1944805937,3724010146&fm=27&gp=0.jpg");
-//            }catch (Exception e){
-//                Log.d(TAG, "onCreate: "+e.toString());
-//            }
-            if(hasReadStoragePermission)
-                chooseOnePicture();
-        }
-    };
 
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -411,6 +456,11 @@ public class MainActivity extends AppCompatActivity {
             if (extras != null) {
                 final String path = extras.getString("dstPath");
                 m_loadingProgressbar.setVisibility(View.VISIBLE);
+                Bitmap bitMap = ToolFunctions.getLoacalBitmap(path);
+                //TODO 在这里调用风格化函数，风格化并保存图片，若风格化成功，将图片添加至mGallery
+                if(ToolFunctions.getStyledPicture(handler,path)) {
+                    addImage(path);
+                }
                 //作弊
                 Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
@@ -427,7 +477,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }catch (Exception e){
             Log.d(TAG, "MainActivity.E0589: "+e.toString());
-            showMessage("E0589: 裁剪照片失败"+e.toString());
+            showMessage("MainActivity.E0589: 裁剪照片失败"+e.toString());
         }
     }
     /**
@@ -436,12 +486,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private void cropPicture(String path){
         try {
-            String toPath = Environment.getExternalStorageDirectory().getPath() + "/StyleCreator";
+            String toPath = ToolFunctions.getSavePathPrefix();
             File destDir = new File(toPath);
             if (!destDir.exists()) {
                 destDir.mkdirs();
             }
-            String savePath = toPath+"/bg.jpeg_";
+            String savePath = toPath+"bg.jpeg_";
             startActivityForResult(CropActivity.createIntent(this,path,savePath), RequestCodes.RequestCrop);
             //保存图片位置
 //            config = sp.edit();

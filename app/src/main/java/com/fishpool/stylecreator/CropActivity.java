@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class CropActivity extends AppCompatActivity {
 
     private String srcPicPath;
     private String dstPicPath;
+    private long crc32Code;
 
     /**
      * 创建本Activity需要的Intent
@@ -53,9 +55,9 @@ public class CropActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crop);
         mCropView = (CropImageView)findViewById(R.id.cropImageView);
-        mCropView.setInitialFrameScale(0.8f);                      //设置裁剪框大小
-        mCropView.setCropMode(CropImageView.CropMode.FREE);  //设置裁剪框比例
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {      //设置裁剪框颜色
+        mCropView.setInitialFrameScale(0.8f);                       //设置裁剪框大小
+        mCropView.setCropMode(CropImageView.CropMode.FREE);         //设置裁剪框比例
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {       //设置裁剪框颜色
             mCropView.setFrameColor(getResources().getColor(R.color.frame,this.getTheme()));
             mCropView.setHandleColor(getResources().getColor(R.color.handle,this.getTheme()));
             mCropView.setGuideColor(getResources().getColor(R.color.guide,this.getTheme()));
@@ -110,7 +112,12 @@ public class CropActivity extends AppCompatActivity {
             returnToMainActivity("",RESULT_CANCELED);
         }
     }
-
+    private String renameDstPathByCRC32Code(File file){
+        crc32Code = ToolFunctions.getCRC32(file);
+        dstPicPath = ToolFunctions.getOriginPathPrefix()+(int)crc32Code;//origin代表原图
+        file.renameTo(new File(dstPicPath));
+        return dstPicPath;
+    }
     /**
      * 按钮监听器
      */
@@ -155,6 +162,7 @@ public class CropActivity extends AppCompatActivity {
             if(bitmap.isRecycled()){
                 bitmap.recycle();
             }
+            path = renameDstPathByCRC32Code(f);
         } catch (IOException e) {
             Log.d(TAG, "CropActivity.E0148: "+e.toString());
             showMessage(e.toString());
@@ -187,6 +195,6 @@ public class CropActivity extends AppCompatActivity {
 
     private void showMessage(String msg)
     {
-        Toast.makeText(getApplicationContext(),msg,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),msg,Toast.LENGTH_LONG).show();
     }
 }

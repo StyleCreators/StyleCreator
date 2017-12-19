@@ -14,18 +14,25 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -42,6 +49,14 @@ public class MainActivity extends AppCompatActivity {
     private Button m_btChoosePicture;
     private ProgressBar m_loadingProgressbar;
 
+    //滑动菜单相关
+    private ConstraintLayout layout;
+    private boolean isMenuDrawerLayoutOpened = false;
+    private DrawerLayout menuDrawerLayout;
+    private ListView menuListView;
+    private List<String> menuList;
+    private ArrayAdapter<String> menuArrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
         m_btChoosePicture.setOnClickListener(onClickListener);
         m_loadingProgressbar = (ProgressBar)findViewById(R.id.loadingProgressBar);
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
+        //创建滑动菜单
+        createSlideMenu();
         //检查权限
         if(isHeigerThanAnroidM)
             checkStoragePermission();
@@ -64,6 +81,80 @@ public class MainActivity extends AppCompatActivity {
             //startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
         }else {
             startActivityForResult(LoginActivity.createIntent(this, true),RequestCodes.RequestSignUp);
+        }
+    }
+
+    private void createSlideMenu(){
+        menuList = ToolFunctions.getMenuList();
+        menuArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.layout_item,menuList);
+        layout = (ConstraintLayout)findViewById(R.id.main_layout);
+        menuDrawerLayout = (DrawerLayout)findViewById(R.id.menuDrawerLayout);
+        menuDrawerLayout.addDrawerListener(drawerListener);
+        menuListView = (ListView)findViewById(R.id.menuListView);
+        menuListView.setAdapter(menuArrayAdapter);
+        menuListView.setOnItemClickListener(onItemClickListener);
+    }
+
+    private int clickedItemPosition = 7;
+    /**
+     * DrawerLayout的监听器
+     */
+    private DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
+        @Override
+        public void onDrawerSlide(View drawerView, float slideOffset) {}
+        @Override
+        public void onDrawerOpened(View drawerView) {
+            isMenuDrawerLayoutOpened = true;
+        }
+        @Override
+        public void onDrawerClosed(View drawerView) { //等到drawerLayout关闭后才执行操作，避免出现卡顿现象
+            isMenuDrawerLayoutOpened = false;
+            switch (clickedItemPosition) {
+                case 0:
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+                default:
+                    break;
+            }
+            clickedItemPosition = 7;
+        }
+        @Override
+        public void onDrawerStateChanged(int newState) {}
+    };
+
+    /**
+     * ListView的监听器
+     */
+    private AdapterView.OnItemClickListener onItemClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            menuDrawerLayout.closeDrawer(Gravity.END);
+            clickedItemPosition = position;
+        }
+    };
+    /**
+     * 重写返回事件，当处于登录状态时实现Home键的功能，否则直接调用原来的返回键功能
+     */
+    @Override
+    public void onBackPressed()
+    {
+        if(!isMenuDrawerLayoutOpened) {
+            super.onBackPressed();
+//            Intent intent = new Intent(Intent.ACTION_MAIN);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            intent.addCategory(Intent.CATEGORY_HOME);
+//            startActivity(intent);
+        }else{
+            menuDrawerLayout.closeDrawer(Gravity.END);
         }
     }
 
@@ -186,8 +277,7 @@ public class MainActivity extends AppCompatActivity {
      * 显示提示信息
      * @param msg 信息
      */
-    private void showMessage(String msg)
-    {
+    private void showMessage(String msg) {
         Toast.makeText(getApplicationContext(),msg,Toast.LENGTH_SHORT).show();
     }
 

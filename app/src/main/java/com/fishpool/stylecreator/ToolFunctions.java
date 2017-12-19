@@ -16,6 +16,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.fishpool.stylecreator.ConstValues.*;
 import static com.fishpool.stylecreator.LoginActivity.*;
@@ -114,5 +116,19 @@ public class ToolFunctions {
         message.obj = Strings.SignUpSucessfully;
         handler.sendMessage(message);
         return true;
+    }
+
+    /**
+     * 生成菜单项
+     * @return 返回菜单项的List
+     */
+    public static List<String> getMenuList(){
+
+        List<String> data = new ArrayList<>();
+        data.add("下线所有设备");
+        data.add("选择流量出口");
+        data.add("更换背景图片");
+        data.add("恢复默认背景");
+        return data;
     }
 }

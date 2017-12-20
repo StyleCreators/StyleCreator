@@ -296,7 +296,7 @@ public class ToolFunctions {
         if(originF.exists())
             if(!originF.delete())
                 Log.d(TAG, "removePicFromStorage: Failed to delete file");
-        String style = getOriginPathPrefix()+id;
+        String style = getStyledPathPrefix()+id;
         File styleF = new File(style);
         if(styleF.exists())
             if(!styleF.delete())

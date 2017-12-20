@@ -97,8 +97,12 @@ public class MainActivity extends AppCompatActivity {
                 @RequiresApi(api = Build.VERSION_CODES.M)
                 @Override
                 public void onClick(View v) {
+                    boolean visible = m_loadingProgressbar.isShown();
                     if (hasReadStoragePermission)
-                        chooseOnePicture();
+                        if(!visible)
+                            chooseOnePicture();
+                    else
+                        showMessage("Main.E:有图片正在进行风格转换，清稍后再试");
                 }
             });
             imageView.setAdjustViewBounds(true);
@@ -278,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
     private void showBitmapFromMessageString(Message msg){
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
         String path = (String) msg.obj;
-        //TODO 作弊
+        //TODO
         String pathCheate = "/storage/emulated/0/StyleCreator/zuobi.jpeg_";   //作弊
         m_imageView.setImageBitmap(ToolFunctions.getLocalBitmap(path));
     }
@@ -488,7 +492,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (extras != null) {
                 final String path = extras.getString("dstPath");
-                m_loadingProgressbar.setVisibility(View.VISIBLE);
                 //Bitmap bitMap = ToolFunctions.getLocalBitmap(path);
                 addImage(path);
                 showStyleOptionAndUploadImage(path);
@@ -499,6 +502,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void showStyleOptionAndUploadImage(final String path){
+        m_loadingProgressbar.setVisibility(View.VISIBLE);
         final int[] styleId = new int[]{1};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("清选择风格");
@@ -523,6 +527,7 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.setNegativeButton(Strings.No, null);
         builder.show();
+        m_loadingProgressbar.setVisibility(View.VISIBLE);
     }
     /**
      * 截图

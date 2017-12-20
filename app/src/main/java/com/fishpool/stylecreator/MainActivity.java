@@ -24,10 +24,8 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -37,9 +35,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.zip.CRC32;
 
 import static com.fishpool.stylecreator.ConstValues.*;
 import static com.fishpool.stylecreator.LoginActivity.SIGN_IN_SUCCESSFULLY;
@@ -116,6 +111,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void addImage(String path){
+        if(path==null){
+            showMessage("Main.E0015:图片路径为空");
+            return;
+        }
         ImageView imageView = new ImageView(this);
         //imageView.setLayoutParams(layout);
         String[] list = path.split("/");
@@ -160,15 +159,25 @@ public class MainActivity extends AppCompatActivity {
      * 根据id来载入风格化好的图片
      * @param id
      */
-    private void loadStyledImage(int id){
+    private void loadStyledImage(final int id){
         //根据id生成图片路径
         //TODO 完成生成风格图片的代码之后，这里需要修改成getStyledPathPrefix
-//        String path = ToolFunctions.getStyledPathPrefix()+id;
-        String path = ToolFunctions.getOriginPathPrefix()+id;
+        String path = ToolFunctions.getStyledPathPrefix()+id;
+        //String path = ToolFunctions.getOriginPathPrefix()+id;
         Bitmap bm = ToolFunctions.getLoacalBitmap(path);
         if(bm != null) {
             m_imageView.setImageBitmap(bm);
         }else{
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setMessage("该图片尚未修改风格，是否修改？")
+                    .setPositiveButton(Strings.Yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String origin = ToolFunctions.getOriginPathPrefix()+id;
+                            showStyleOptionAndUploadImage(origin);
+                        }
+                    }).setNegativeButton(Strings.No, null).create();
+            dialog.show();
             Log.d(TAG, "Main.E0172: 图片不存在");
         }
     }
@@ -250,11 +259,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what){
-                case MessageTypes.BitmapDownloadFinished:
-                    showBitmapFromMessageObj(msg);
+                case MsgTypes.BitmapDownloadFinished:
+                    showAndSaveBitmapFromMessageObj(msg);
                     break;
-                case MessageTypes.TimeIsUp:
+                case MsgTypes.TimeIsUp:
                     showBitmapFromMessageString(msg);
+                    break;
+                case MsgTypes.ServerProcessFinished:
+                    processServerProcessResult(msg);
                     break;
                 default:
                     break;
@@ -270,12 +282,28 @@ public class MainActivity extends AppCompatActivity {
         String pathCheate = "/storage/emulated/0/StyleCreator/zuobi.jpeg_";   //作弊
         m_imageView.setImageBitmap(ToolFunctions.getLoacalBitmap(path));
     }
-    private void showBitmapFromMessageObj(Message msg){
+    private void showAndSaveBitmapFromMessageObj(Message msg){
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
         Bitmap bitmap = (Bitmap)msg.obj;
         m_imageView.setImageBitmap(bitmap);
+        //保存风格化后的图片
+        String path = ToolFunctions.getStylePathById(msg.arg1);
+        if(path==null){
+            Log.d(TAG, "Tool.E0360: 存储路径获取失败");
+            return;
+        }
+        ToolFunctions.saveBitmapToPath(bitmap,path);
     }
-
+    private void processServerProcessResult(Message msg){
+        String result = (String) msg.obj;
+        if(result.contains("Error")){
+            showMessage("处理图片失败:"+result);
+        }else{
+            //处理成功,从服务器下载图片
+//            addImage(ToolFunctions.getOriginPathByUrl(result));
+            ToolFunctions.getBitmapFromUrl(handler,result);
+        }
+    }
     /**
      * Andoid M及以上版本需要弹出窗口获取读写权限
      */
@@ -456,29 +484,40 @@ public class MainActivity extends AppCompatActivity {
             if (extras != null) {
                 final String path = extras.getString("dstPath");
                 m_loadingProgressbar.setVisibility(View.VISIBLE);
-                Bitmap bitMap = ToolFunctions.getLoacalBitmap(path);
-                //TODO 在这里调用风格化函数，风格化并保存图片，若风格化成功，将图片添加至mGallery
-                if(ToolFunctions.getStyledPicture(handler,path)) {
-                    addImage(path);
-                }
-                //作弊
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        Message msg = Message.obtain();
-                        msg.what = MessageTypes.TimeIsUp;
-                        msg.obj = path;
-                        handler.sendMessage(msg);
-                    }
-                },3000);
-                //作弊结束
-                //m_imageView.setImageBitmap(ToolFunctions.getLoacalBitmap(path));
+                //Bitmap bitMap = ToolFunctions.getLoacalBitmap(path);
+                addImage(path);
+                showStyleOptionAndUploadImage(path);
             }
         }catch (Exception e){
             Log.d(TAG, "MainActivity.E0589: "+e.toString());
             showMessage("MainActivity.E0589: 裁剪照片失败"+e.toString());
         }
+    }
+    private void showStyleOptionAndUploadImage(final String path){
+        final int[] styleId = new int[]{1};
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("清选择风格");
+        //TODO 后期添加更多风格，并且细化风格名称
+        final String[] styles = {"风格1", "风格2", "风格3","风格4"};
+        //设置一个单项选择下拉框
+        builder.setSingleChoiceItems(styles, 1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                styleId[0] = which;
+            }
+        });
+        builder.setPositiveButton(Strings.Yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                String email = LoginActivity.getUserEmail(MainActivity.this);
+                if(!ToolFunctions.uploadOriginImage(handler,email,path,styleId[0])) {
+                    showMessage("Main.E0470:上传图片失败");
+                }
+            }
+        });
+        builder.setNegativeButton(Strings.No, null);
+        builder.show();
     }
     /**
      * 截图

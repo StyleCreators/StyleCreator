@@ -30,11 +30,12 @@ public class ConstValues {
     }
 
     //消息类型
-    public static class MessageTypes{
+    public static class MsgTypes {
         public final static int BitmapDownloadFinished = 1;
         public final static int TimeIsUp = 2;
         public final static int SignIn = 3;
         public final static int SignUp = 4;
+        public final static int ServerProcessFinished = 5;
     }
     //请求类型
     public static class RequestCodes{

@@ -1,7 +1,6 @@
 package com.fishpool.stylecreator;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,18 +9,20 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -84,7 +85,8 @@ public class ToolFunctions {
             public void run() {
                 Bitmap bitmap = getHttpBitmap(url);
                 Message m = Message.obtain();
-                m.what = MessageTypes.BitmapDownloadFinished;
+                m.what = MsgTypes.BitmapDownloadFinished;
+                m.arg1 = getIdFromUrl(url);
                 m.obj = bitmap;
                 handler.sendMessage(m);
             }
@@ -133,7 +135,7 @@ public class ToolFunctions {
     public static boolean signIn(String email,String password,Handler handler){
         //TODO 还需要实现登录操作
         Message message = Message.obtain();
-        message.what = MessageTypes.SignIn;
+        message.what = MsgTypes.SignIn;
         message.obj = Strings.SignInSucessfully;
         handler.sendMessage(message);
         return true;
@@ -142,13 +144,64 @@ public class ToolFunctions {
     public static boolean signUp(String email,String password,String confirmPassword,Handler handler){
         //TODO 还需要实现注册操作
         Message message = Message.obtain();
-        message.what = MessageTypes.SignUp;
+        message.what = MsgTypes.SignUp;
         message.obj = Strings.SignUpSucessfully;
         handler.sendMessage(message);
         return true;
     }
-    public static boolean getStyledPicture(final Handler handler,final String path){
-        //TODO 完成风格化函数
+    public static boolean uploadOriginImage(final Handler handler, final String email,
+                                            final String filePath,final int styleType){
+        String[] strings = filePath.split("/");
+        final String fileName = strings[strings.length-1];
+        final String strUrl = "http://10.0.2.2/post.php?uid="+email+"&filename="+fileName+"&styletype="+styleType;
+        Log.d(TAG, "uploadOriginImage: "+strUrl);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url=new URL(strUrl);
+                    HttpURLConnection connection=(HttpURLConnection)url.openConnection();
+                    connection.setDoInput(true);
+                    connection.setDoOutput(true);
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("content-type", "text/html");
+
+                    //读取文件上传到服务器
+                    BufferedOutputStream out=new BufferedOutputStream(connection.getOutputStream());
+                    File file=new File(filePath);
+                    FileInputStream fileInputStream=new FileInputStream(file);
+                    byte[]bytes=new byte[1024];
+                    int numReadByte=0;
+                    while((numReadByte=fileInputStream.read(bytes,0,1024))>0)
+                    {
+                        out.write(bytes, 0, numReadByte);
+                    }
+                    out.flush();
+                    fileInputStream.close();
+
+                    //读取URLConnection的响应
+                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String line;
+                    String result="";
+                    while ((line = in.readLine()) != null) {
+                        result += line;
+                    }
+
+                    //将结果返回给主线程
+                    Message msg = Message.obtain();
+                    msg.what = MsgTypes.ServerProcessFinished;
+                    msg.obj = result;
+                    handler.sendMessage(msg);
+                } catch (Exception e) {
+                    Log.d(TAG, "uploadOriginImage: "+e.toString());
+                    //将结果返回给主线程
+                    Message msg = Message.obtain();
+                    msg.what = MsgTypes.ServerProcessFinished;
+                    msg.obj = "Error:上传图片失败";
+                    handler.sendMessage(msg);
+                }
+            }
+        }).start();
         return true;
     }
     /**
@@ -251,8 +304,7 @@ public class ToolFunctions {
      * @param bitmap 原图
      * @return
      */
-    public static Bitmap addWhiteBarForBitmap(Bitmap bitmap)
-    {
+    public static Bitmap addWhiteBarForBitmap(Bitmap bitmap) {
         int width = bitmap.getWidth();
         int height =  bitmap.getHeight();
         int num = 14;
@@ -272,5 +324,55 @@ public class ToolFunctions {
         // 画正方形的
         canvas.drawRect(0, 0, sizeW, sizeH, paint);
         return newBitmap;
+    }
+
+    private static int getIdFromUrl(String url){
+        String[] list = url.split("/");
+        try {
+            String idStr = list[list.length-1].replace(".jpeg","");
+            return Integer.parseInt(idStr);
+        }catch (Exception e){
+            return 0;
+        }
+    }
+    public static String getOriginPathByUrl(String url){
+        int id = getIdFromUrl(url);
+        if (id==0){
+            return null;
+        }
+        return getOriginPathPrefix()+id;
+    }
+    public static String getStylePathByUrl(String url){
+        int id = getIdFromUrl(url);
+        if (id==0){
+            return null;
+        }
+        return getStyledPathPrefix()+id;
+    }
+    public static String getStylePathById(int id){
+        if (id==0){
+            return null;
+        }
+        return getStyledPathPrefix()+id;
+    }
+    public static void saveBitmapToPath(Bitmap bitmap,String path){
+        if(path==null){
+            return;
+        }
+        try {
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+            FileOutputStream out = new FileOutputStream(f);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
+            if(bitmap.isRecycled()){
+                bitmap.recycle();
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "Tool.E0148: "+e.toString());
+        }
     }
 }

@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -130,10 +129,10 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what){
-                case MessageTypes.SignIn:
+                case MsgTypes.SignIn:
                     processSignInResult(msg);
                     break;
-                case MessageTypes.SignUp:
+                case MsgTypes.SignUp:
                     processSignUpResult(msg);
                     break;
             }
@@ -242,5 +241,10 @@ public class LoginActivity extends AppCompatActivity {
             etEmail.setText(preferences.getString(TagEmail,""));
             etPassword.setText(preferences.getString(TagPassword,""));
         }
+    }
+
+    public static String getUserEmail(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(TagEmail,"");
     }
 }

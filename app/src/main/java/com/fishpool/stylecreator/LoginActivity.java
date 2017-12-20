@@ -227,7 +227,8 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
         if(!password.equals(confirmPassword)){
-           showMessage(Strings.PasswordNotEqualWithConfirmPassword);
+            showMessage(Strings.PasswordNotEqualWithConfirmPassword);
+            return;
         }
         ToolFunctions.signUp(email,password,confirmPassword,handler);
     }

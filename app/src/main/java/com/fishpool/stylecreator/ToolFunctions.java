@@ -44,16 +44,19 @@ public class ToolFunctions {
      * @param url
      * @return
      */
-    public static Bitmap getLoacalBitmap(String url) {
+    public static Bitmap getLocalBitmap(String url) {
+        if(url==null){
+            return null;
+        }
         try {
             FileInputStream fis = new FileInputStream(url);
             return BitmapFactory.decodeStream(fis);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Log.d(TAG, "Tool.E0052: "+e.toString());
             return null;
         }
     }
-    public static Bitmap getLoacalSmallBitmap(String path) {
+    public static Bitmap getLocalSmallBitmap(String path) {
         try {
             BitmapFactory.Options option = new BitmapFactory.Options();
             File file = new File(path);
@@ -64,12 +67,12 @@ public class ToolFunctions {
                     inSampleSize = 1;
                 }
                 option.inSampleSize = inSampleSize;
-                Log.d(TAG, "getLoacalBitmap: "+option.inSampleSize);
+                Log.d(TAG, "getLocalSmallBitmap: "+option.inSampleSize);
             }
             Bitmap  bitmap= BitmapFactory.decodeFile(path,option);
             return bitmap;
         } catch (Exception e) {
-            Log.d(TAG, "getLoacalBitmap: "+e.toString());
+            Log.d(TAG, "getLocalSmallBitmap: "+e.toString());
             return null;
         }
     }
@@ -161,6 +164,7 @@ public class ToolFunctions {
                 try {
                     URL url=new URL(strUrl);
                     HttpURLConnection connection=(HttpURLConnection)url.openConnection();
+                    connection.setConnectTimeout(3000);
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setRequestMethod("POST");
@@ -193,7 +197,7 @@ public class ToolFunctions {
                     msg.obj = result;
                     handler.sendMessage(msg);
                 } catch (Exception e) {
-                    Log.d(TAG, "uploadOriginImage: "+e.toString());
+                    Log.d(TAG, "Tool.E0197: "+e.toString());
                     //将结果返回给主线程
                     Message msg = Message.obtain();
                     msg.what = MsgTypes.ServerProcessFinished;

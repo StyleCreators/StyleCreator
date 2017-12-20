@@ -25,7 +25,5 @@ public class MainActivityTest {
 
     @Test
     public void choosePicture() throws Exception {
-        onView(withId(R.id.btUploadPicture)).perform(click());
-
     }
 }

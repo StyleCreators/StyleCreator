@@ -81,9 +81,9 @@ public class MainActivity extends AppCompatActivity {
         //检查是否登录，未登录，则启动登录界面
         if(!ToolFunctions.checkLogin(getApplicationContext())){
             startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
-        }else{//载入相册
-            initGallery();
         }
+        if(hasReadStoragePermission)
+            initGallery();
     }
     private void initGallery() {
 //        mImgIds = ToolFunctions.getPictureIds();
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         String[] list = path.split("/");
         long id = Long.parseLong(list[list.length-1]);
         imageView.setId((int)id);
-        Bitmap bitMap = ToolFunctions.getLoacalSmallBitmap(path);
+        Bitmap bitMap = ToolFunctions.getLocalSmallBitmap(path);
         bitMap = ToolFunctions.addWhiteBarForBitmap(bitMap);
         imageView.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         //TODO 完成生成风格图片的代码之后，这里需要修改成getStyledPathPrefix
         String path = ToolFunctions.getStyledPathPrefix()+id;
         //String path = ToolFunctions.getOriginPathPrefix()+id;
-        Bitmap bm = ToolFunctions.getLoacalBitmap(path);
+        Bitmap bm = ToolFunctions.getLocalBitmap(path);
         if(bm != null) {
             m_imageView.setImageBitmap(bm);
         }else{
@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
         String path = (String) msg.obj;
         //TODO 作弊
         String pathCheate = "/storage/emulated/0/StyleCreator/zuobi.jpeg_";   //作弊
-        m_imageView.setImageBitmap(ToolFunctions.getLoacalBitmap(path));
+        m_imageView.setImageBitmap(ToolFunctions.getLocalBitmap(path));
     }
     private void showAndSaveBitmapFromMessageObj(Message msg){
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
@@ -289,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
         //保存风格化后的图片
         String path = ToolFunctions.getStylePathById(msg.arg1);
         if(path==null){
-            Log.d(TAG, "Tool.E0360: 存储路径获取失败");
+            Log.d(TAG, "Main.E0292: 存储路径获取失败");
             return;
         }
         ToolFunctions.saveBitmapToPath(bitmap,path);
@@ -297,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
     private void processServerProcessResult(Message msg){
         String result = (String) msg.obj;
         if(result.contains("Error")){
-            showMessage("处理图片失败:"+result);
+            showMessage("Main.E0300:"+result);
         }else{
             //处理成功,从服务器下载图片
 //            addImage(ToolFunctions.getOriginPathByUrl(result));
@@ -346,6 +346,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == RequestCodes.RequestReadPermission){
             if (permissions[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE) &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 hasReadStoragePermission = true;
+                initGallery();
             }else{
                 hasReadStoragePermission = false;
                 final MainActivity activity = this;
@@ -365,6 +366,7 @@ public class MainActivity extends AppCompatActivity {
                     &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 //用户同意使用write
                 hasWriteStoragePermission = true;
+                initGallery();
             }else{
                 //用户不同意，自行处理即可
                 hasWriteStoragePermission = false;
@@ -437,7 +439,10 @@ public class MainActivity extends AppCompatActivity {
             Bundle extras = data.getExtras();
             try{
                 boolean successful = extras.getBoolean(SIGN_IN_SUCCESSFULLY);
-                Log.d(TAG, "processSignInResult: "+successful);
+                if(successful)
+                    Log.d(TAG, "processSignInResult: "+successful);
+                else
+                    finish();
             }catch (Exception e){
                 Log.d(TAG, "processSignInResult: "+e.toString());
             }
@@ -466,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
             cursor.close();
             if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
             {
-                //m_imageView.setImageBitmap(ToolFunctions.getLoacalBitmap(picturePath));
+                //m_imageView.setImageBitmap(ToolFunctions.getLocalBitmap(picturePath));
                 cropPicture(picturePath);
             }else{
                 showMessage("无法存储图像");
@@ -484,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
             if (extras != null) {
                 final String path = extras.getString("dstPath");
                 m_loadingProgressbar.setVisibility(View.VISIBLE);
-                //Bitmap bitMap = ToolFunctions.getLoacalBitmap(path);
+                //Bitmap bitMap = ToolFunctions.getLocalBitmap(path);
                 addImage(path);
                 showStyleOptionAndUploadImage(path);
             }

@@ -27,6 +27,7 @@ public class ConstValues {
         public final static String Yes = "确认";
         public final static String No = "取消";
         public final static String Cancel = "取消";
+        public final static String YouAreNotSignIn = "您还尚未登录";
     }
 
     //消息类型

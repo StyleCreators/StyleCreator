@@ -27,7 +27,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.CRC32;
 
 import static com.fishpool.stylecreator.ConstValues.*;
@@ -134,7 +136,6 @@ public class ToolFunctions {
         SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(TagAlreadySignIn,false);
     }
-
     public static boolean signIn(String email,String password,Handler handler){
         //TODO 还需要实现登录操作
         Message message = Message.obtain();
@@ -143,7 +144,6 @@ public class ToolFunctions {
         handler.sendMessage(message);
         return true;
     }
-
     public static boolean signUp(String email,String password,String confirmPassword,Handler handler){
         //TODO 还需要实现注册操作
         Message message = Message.obtain();
@@ -152,6 +152,22 @@ public class ToolFunctions {
         handler.sendMessage(message);
         return true;
     }
+    public static HashMap<String,String> getUserInfo(Context context){
+        HashMap<String,String> infoes = new HashMap<>();
+        SharedPreferences sp = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        infoes.put("name","姓名:"+sp.getString(LoginActivity.TagEmail,"error"));
+        infoes.put("email","邮箱:"+sp.getString(LoginActivity.TagEmail,"error"));
+        infoes.put("image_count","照片数量:"+sp.getString("image_count","-1"));
+        return infoes;
+    }
+    public static boolean signOut(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(TagAlreadySignIn,false);
+        editor.apply();
+        return true;
+    }
+
     public static boolean uploadOriginImage(final Handler handler, final String email,
                                             final String filePath,final int styleType){
         String[] strings = filePath.split("/");

@@ -156,7 +156,6 @@ public class LoginActivity extends AppCompatActivity {
     private void processSignUpResult(Message message){
         String result = (String)message.obj;
         showMessage(result);
-        returnToMainActivity(true,RESULT_OK);
         config = preferences.edit();
         if(result.equals(Strings.SignUpSucessfully)){
             config.putBoolean(TagAlreadySignIn,true);
@@ -166,6 +165,7 @@ public class LoginActivity extends AppCompatActivity {
             returnToMainActivity(false,RESULT_OK);
         }
         config.apply();
+        returnToMainActivity(true,RESULT_OK);
     }
     private void init(){
         preferences = getApplicationContext().getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);

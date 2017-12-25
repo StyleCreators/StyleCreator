@@ -186,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     private void createSlideMenu(){
         menuList = ToolFunctions.getMenuList();
         menuArrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.item_menu,menuList);
@@ -200,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
      * DrawerLayout的监听器
      */
     private int clickedItemPosition = 7;
-    private MainActivity activity = this;
     private DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerSlide(View drawerView, float slideOffset) {}
@@ -213,14 +213,15 @@ public class MainActivity extends AppCompatActivity {
             isMenuDrawerLayoutOpened = false;
             switch (clickedItemPosition) {
                 case 0:
-                    startActivityForResult(LoginActivity.createIntent(activity,false),
+                    startActivityForResult(LoginActivity.createIntent(MainActivity.this,false),
                             RequestCodes.RequestSignIn);
                     break;
                 case 1://注册被点击
-                    startActivityForResult(LoginActivity.createIntent(activity, true),
+                    startActivityForResult(LoginActivity.createIntent(MainActivity.this, true),
                             RequestCodes.RequestSignUp);
                     break;
                 case 2:
+                    startActivity(InfoActivity.createIntent(MainActivity.this));
                     break;
                 case 3:
                     break;
@@ -232,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDrawerStateChanged(int newState) {}
     };
-
     /**
      * ListView的监听器
      */
@@ -388,6 +388,7 @@ public class MainActivity extends AppCompatActivity {
     private void showMessage(String msg) {
         Toast.makeText(getApplicationContext(),msg,Toast.LENGTH_SHORT).show();
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void chooseOnePicture(){

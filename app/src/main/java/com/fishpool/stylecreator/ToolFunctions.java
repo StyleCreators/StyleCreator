@@ -74,7 +74,7 @@ public class ToolFunctions {
             Bitmap  bitmap= BitmapFactory.decodeFile(path,option);
             return bitmap;
         } catch (Exception e) {
-            Log.d(TAG, "getLocalSmallBitmap: "+e.toString());
+            Log.d(TAG, "Tool.E0077: "+e.toString());
             return null;
         }
     }
@@ -103,14 +103,14 @@ public class ToolFunctions {
      * @param url
      * @return
      */
-    private static Bitmap getHttpBitmap(String url) {
+    public static Bitmap getHttpBitmap(String url) {
         URL myFileUrl = null;
         Bitmap bitmap = null;
         try {
             Log.d(TAG, "getHttpBitmap:"+url);
             myFileUrl = new URL(url);
         } catch (MalformedURLException e) {
-            Log.d(TAG, "getHttpBitmap: "+e.toString());
+            Log.d(TAG, "Tool.E0113: "+e.toString());
         }
         try {
             HttpURLConnection conn = (HttpURLConnection) myFileUrl.openConnection();
@@ -121,9 +121,9 @@ public class ToolFunctions {
             bitmap = BitmapFactory.decodeStream(is);
             is.close();
         } catch (NullPointerException e) {
-            Log.d(TAG, "getHttpBitmap: "+e.toString());;
+            Log.d(TAG, "Tool.E0124: "+e.toString());;
         }catch (IOException e){
-            Log.d(TAG, "getHttpBitmap: "+e.toString());
+            Log.d(TAG, "Tool.E0126: "+e.toString());
         }
         return bitmap;
     }

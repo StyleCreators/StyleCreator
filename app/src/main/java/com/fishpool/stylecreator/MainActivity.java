@@ -72,8 +72,9 @@ public class MainActivity extends AppCompatActivity {
         //创建滑动菜单
         createSlideMenu();
         //检查权限
-        if(isHeigerThanAnroidM)
+        if(isHeigerThanAnroidM) {
             checkStoragePermission();
+        }
         else{
             hasWriteStoragePermission = true;
             hasReadStoragePermission = true;

@@ -1,6 +1,8 @@
 package com.fishpool.stylecreator;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
@@ -8,13 +10,12 @@ import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 
-/**
- * ToolFunctions测试
- */
+
 @RunWith(AndroidJUnit4.class)
+
 public class ToolFunctionsTest {
     @Test
-    public void getLocalBitmap() throws Exception {
+    public void testGetLocalBitmap() throws Exception {
         //test1
         String path = "";
         Bitmap bm = ToolFunctions.getLocalBitmap(path);
@@ -34,7 +35,7 @@ public class ToolFunctionsTest {
     }
 
     @Test
-    public void getLocalSmallBitmap() throws Exception {
+    public void testGetLocalSmallBitmap() throws Exception {
         //test1
         String path = "";
         Bitmap bm = ToolFunctions.getLocalSmallBitmap(path);
@@ -54,7 +55,7 @@ public class ToolFunctionsTest {
     }
 
     @Test
-    public void getHttpBitmap() throws Exception{
+    public void testGetHttpBitmap() throws Exception{
         String url1=null;
         String url2="";
         String url3="https://ss0.bdstatic.com";
@@ -72,5 +73,22 @@ public class ToolFunctionsTest {
         //test4
         bm = ToolFunctions.getHttpBitmap(url4);
         assertEquals(bm==null,false);
+    }
+
+    @Test
+    public void testCheckLogin() throws Exception{
+        //test1
+        Context c1 = null;
+        boolean isSignIn = ToolFunctions.checkLogin(c1);
+        assertEquals(false, isSignIn);
+        //test2
+        Context c2 = InstrumentationRegistry.getTargetContext();
+        isSignIn = ToolFunctions.checkLogin(c2);
+        assertEquals(true, isSignIn);
+    }
+
+    @Test
+    public void testGetCRC32() throws Exception{
+
     }
 }

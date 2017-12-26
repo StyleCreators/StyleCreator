@@ -12,6 +12,7 @@ import android.graphics.PorterDuffXfermode;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.BufferedOutputStream;
@@ -133,6 +134,9 @@ public class ToolFunctions {
      * @return 登录返回true
      */
     public static boolean checkLogin(Context context){
+//        if(context==null){
+//            return false;
+//        }
         SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(TagAlreadySignIn,false);
     }

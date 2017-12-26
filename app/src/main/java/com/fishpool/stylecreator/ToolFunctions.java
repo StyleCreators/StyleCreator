@@ -107,7 +107,7 @@ public class ToolFunctions {
         URL myFileUrl = null;
         Bitmap bitmap = null;
         try {
-            Log.d(TAG, url);
+            Log.d(TAG, "getHttpBitmap:"+url);
             myFileUrl = new URL(url);
         } catch (MalformedURLException e) {
             Log.d(TAG, "getHttpBitmap: "+e.toString());
@@ -136,16 +136,30 @@ public class ToolFunctions {
         SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(TagAlreadySignIn,false);
     }
-    public static boolean signIn(String email,String password,Handler handler){
+    public static boolean signIn(Context context,Handler handler,String email,String password){
         //TODO 还需要实现登录操作
         Message message = Message.obtain();
         message.what = MsgTypes.SignIn;
         message.obj = Strings.SignInSucessfully;
+
+        SharedPreferences sp = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        if(!email.equals(sp.getString(TagEmail,""))){
+            message.obj = Strings.UserNotExist;
+        }else if(!password.equals(sp.getString(TagPassword,""))){
+            message.obj = Strings.PasswordNotCorrect;
+        }
+
         handler.sendMessage(message);
         return true;
     }
-    public static boolean signUp(String email,String password,String confirmPassword,Handler handler){
+    public static boolean signUp(Context context,Handler handler,String email,String password,
+                                 String confirmPassword){
         //TODO 还需要实现注册操作
+        SharedPreferences sp = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(TagEmail,email);
+        editor.putString(TagPassword,password);
+        editor.apply();
         Message message = Message.obtain();
         message.what = MsgTypes.SignUp;
         message.obj = Strings.SignUpSucessfully;
@@ -157,7 +171,7 @@ public class ToolFunctions {
         SharedPreferences sp = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
         infoes.put("name","姓名:"+sp.getString(LoginActivity.TagEmail,"error"));
         infoes.put("email","邮箱:"+sp.getString(LoginActivity.TagEmail,"error"));
-        infoes.put("image_count","照片数量:"+sp.getString("image_count","-1"));
+        //infoes.put("image_count","照片数量:"+sp.getString("image_count","-1"));
         return infoes;
     }
     public static boolean signOut(Context context){

@@ -28,6 +28,8 @@ public class ConstValues {
         public final static String No = "取消";
         public final static String Cancel = "取消";
         public final static String YouAreNotSignIn = "您还尚未登录";
+        public final static String PasswordNotCorrect = "密码不正确";
+        public final static String UserNotExist = "用户不存在";
     }
 
     //消息类型
@@ -46,6 +48,7 @@ public class ConstValues {
         public final static int RequestChooseOnePicture = 2;
         public final static int RequestSignIn = 3;
         public final static int RequestSignUp = 4;
+        public final static int RequestShowInfo = 5;
 
         //请求权限
         public final static int RequestWritePermission = 22;

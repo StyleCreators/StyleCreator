@@ -82,15 +82,20 @@ public class MainActivity extends AppCompatActivity {
         if(!ToolFunctions.checkLogin(getApplicationContext())){
             startActivityForResult(LoginActivity.createIntent(this,false),RequestCodes.RequestSignIn);
         }
-        if(hasReadStoragePermission)
-            initGallery();
+        if(hasReadStoragePermission){
+            if(ToolFunctions.checkLogin(getApplicationContext())){
+                initGallery();
+            }
+        }
     }
+
     private void initGallery() {
 //        mImgIds = ToolFunctions.getPictureIds();
+        mImgIds = new int[]{R.drawable.add};
+        mGallery = (LinearLayout) findViewById(R.id.id_gallery);
+        mGallery.setVerticalGravity(Gravity.CENTER_VERTICAL);
         //添加+号的那张图
         {
-            mImgIds = new int[]{R.drawable.add};
-            mGallery = (LinearLayout) findViewById(R.id.id_gallery);
             ImageView imageView = new ImageView(this);
             imageView.setId(mImgIds[0]);
             imageView.setOnClickListener(new View.OnClickListener() {
@@ -137,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                removeImage(v);
+                imageViewLongClickOption(v);
                 return false;
             }
         });
@@ -145,6 +150,26 @@ public class MainActivity extends AppCompatActivity {
         imageView.setScaleType(ImageView.ScaleType. CENTER_CROP);
         imageView.setImageBitmap(bitMap);
         mGallery.addView(imageView);
+    }
+    private void imageViewLongClickOption(final View v){
+        final String[] items = { "更改风格","删除图片"};
+        AlertDialog.Builder listDialog =
+                new AlertDialog.Builder(MainActivity.this);
+        listDialog.setTitle("图片操作");
+        listDialog.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case 0:
+                        String origin = ToolFunctions.getOriginPathPrefix()+v.getId();
+                        showStyleOptionAndUploadImage(origin);
+                        break;
+                    case 1:
+                        removeImage(v);
+                }
+            }
+        });
+        listDialog.show();
     }
     private void removeImage(final View v){
         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -158,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
                 }).setNegativeButton(Strings.No, null).create();
         dialog.show();
     }
-
     /**
      * 根据id来载入风格化好的图片
      * @param id
@@ -221,7 +245,8 @@ public class MainActivity extends AppCompatActivity {
                             RequestCodes.RequestSignUp);
                     break;
                 case 2:
-                    startActivity(InfoActivity.createIntent(MainActivity.this));
+                    startActivityForResult(InfoActivity.createIntent(MainActivity.this,
+                            mGallery.getChildCount()-1), RequestCodes.RequestShowInfo);
                     break;
                 case 3:
                     break;
@@ -308,6 +333,7 @@ public class MainActivity extends AppCompatActivity {
             ToolFunctions.getBitmapFromUrl(handler,result);
         }
     }
+
     /**
      * Andoid M及以上版本需要弹出窗口获取读写权限
      */
@@ -337,7 +363,6 @@ public class MainActivity extends AppCompatActivity {
             hasReadStoragePermission = true;
         }
     }
-
     /**
      * 获取读写权限设置结果
      * @param requestCode 请求码
@@ -350,16 +375,17 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == RequestCodes.RequestReadPermission){
             if (permissions[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE) &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 hasReadStoragePermission = true;
-                initGallery();
+                if(ToolFunctions.checkLogin(getApplicationContext())){
+                    initGallery();
+                }
             }else{
                 hasReadStoragePermission = false;
-                final MainActivity activity = this;
                 AlertDialog dialog = new AlertDialog.Builder(this)
                         .setMessage("您已取消授权")
                         .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                activity.finish();
+                                MainActivity.this.finish();
                             }
                         }).create();
                 dialog.show();
@@ -370,7 +396,9 @@ public class MainActivity extends AppCompatActivity {
                     &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 //用户同意使用write
                 hasWriteStoragePermission = true;
-                initGallery();
+                if(ToolFunctions.checkLogin(getApplicationContext())){
+                    initGallery();
+                }
             }else{
                 //用户不同意，自行处理即可
                 hasWriteStoragePermission = false;
@@ -408,10 +436,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == RESULT_CANCELED){
-            showMessage(Strings.OperationCanceled);
-            return;
-        }
+//        if(resultCode == RESULT_CANCELED){
+//            showMessage(Strings.OperationCanceled);
+//            return;
+//        }
         switch (requestCode){
             case RequestCodes.RequestChooseOnePicture:
                 this.processChooseOnePictureResult(resultCode,data);
@@ -424,6 +452,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case RequestCodes.RequestSignUp:
                 this.processSignUpResult(resultCode,data);
+                break;
+            case RequestCodes.RequestShowInfo:
+                this.processShowInfoResult(resultCode,data);
                 break;
             default:
                 break;
@@ -444,12 +475,14 @@ public class MainActivity extends AppCompatActivity {
             Bundle extras = data.getExtras();
             try{
                 boolean successful = extras.getBoolean(SIGN_IN_SUCCESSFULLY);
-                if(successful)
-                    Log.d(TAG, "processSignInResult: "+successful);
-                else
-                    finish();
+                if(successful) {
+                    Log.d(TAG, "processSignInResult: " + successful);
+                    initGallery();
+                }
+//                else
+//                    finish();
             }catch (Exception e){
-                Log.d(TAG, "processSignInResult: "+e.toString());
+                Log.d(TAG, "Main.E0456: "+e.toString());
             }
         }
     }
@@ -458,9 +491,27 @@ public class MainActivity extends AppCompatActivity {
             Bundle extras = data.getExtras();
             try{
                 boolean successful = extras.getBoolean(SIGN_IN_SUCCESSFULLY);
-                Log.d(TAG, "processSignInResult: "+successful);
+                Log.d(TAG, "processSignUpResult: "+successful);
+                if(successful) {
+                    Log.d(TAG, "processSignInResult: " + successful);
+                    initGallery();
+                }
             }catch (Exception e){
-                Log.d(TAG, "processSignInResult: "+e.toString());
+                Log.d(TAG, "Main.E0467: "+e.toString());
+            }
+        }
+    }
+    private void processShowInfoResult(int resultCode,Intent data){
+        if (resultCode == RESULT_OK && data != null) {
+            Bundle extras = data.getExtras();
+            try{
+                boolean signOut = extras.getBoolean(InfoActivity.Tag_SignOutResult);
+                if(signOut){
+                    mGallery.removeAllViews();
+                }
+                Log.d(TAG, "processSignOutResult: "+signOut);
+            }catch (Exception e){
+                Log.d(TAG, "Main.E0481: "+e.toString());
             }
         }
     }
@@ -486,6 +537,28 @@ public class MainActivity extends AppCompatActivity {
         {
             Log.d(TAG, "MainActivity.E0481: 获取照片失败");
             showMessage("E0481: 获取照片失败");
+        }
+    }
+    /**
+     * 截图
+     * @param path 原图路径
+     */
+    private void cropPicture(String path){
+        try {
+            String toPath = ToolFunctions.getSavePathPrefix();
+            File destDir = new File(toPath);
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+            }
+            String savePath = toPath+"bg.jpeg_";
+            startActivityForResult(CropActivity.createIntent(this,path,savePath), RequestCodes.RequestCrop);
+            //保存图片位置
+//            config = sp.edit();
+//            config.putString("backgroundPath",savePath);
+//            config.apply();
+        }catch (Exception e){
+            Log.d(TAG, "MainActivity.E0620: "+e.toString());
+            showMessage("E0620: 裁剪照片失败"+e.toString());
         }
     }
     private void getCroppedImage(Intent data){
@@ -529,27 +602,5 @@ public class MainActivity extends AppCompatActivity {
         builder.setNegativeButton(Strings.No, null);
         builder.show();
         m_loadingProgressbar.setVisibility(View.VISIBLE);
-    }
-    /**
-     * 截图
-     * @param path 原图路径
-     */
-    private void cropPicture(String path){
-        try {
-            String toPath = ToolFunctions.getSavePathPrefix();
-            File destDir = new File(toPath);
-            if (!destDir.exists()) {
-                destDir.mkdirs();
-            }
-            String savePath = toPath+"bg.jpeg_";
-            startActivityForResult(CropActivity.createIntent(this,path,savePath), RequestCodes.RequestCrop);
-            //保存图片位置
-//            config = sp.edit();
-//            config.putString("backgroundPath",savePath);
-//            config.apply();
-        }catch (Exception e){
-            Log.d(TAG, "MainActivity.E0620: "+e.toString());
-            showMessage("E0620: 裁剪照片失败"+e.toString());
-        }
     }
 }

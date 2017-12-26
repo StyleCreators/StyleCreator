@@ -113,7 +113,7 @@ public class LoginActivity extends AppCompatActivity {
                     config.apply();
                     break;
                 case R.id.etPassword:
-                    if(cbAutoLogin.isChecked()) {
+                    if(cbAutoLogin.isChecked() && isSignUp) {
                         config = preferences.edit();
                         config.putString(TagPassword, s.toString().trim());
                         config.apply();
@@ -148,8 +148,9 @@ public class LoginActivity extends AppCompatActivity {
             config.putBoolean(TagAlreadySignIn,true);
             returnToMainActivity(true,RESULT_OK);
         }else{
+            showMessage(result);
             config.putBoolean(TagAlreadySignIn,false);
-            returnToMainActivity(false,RESULT_OK);
+            //returnToMainActivity(false,RESULT_OK);
         }
         config.apply();
     }
@@ -162,7 +163,8 @@ public class LoginActivity extends AppCompatActivity {
             returnToMainActivity(true,RESULT_OK);
         }else{
             config.putBoolean(TagAlreadySignIn,false);
-            returnToMainActivity(false,RESULT_OK);
+            showMessage(result);
+           // returnToMainActivity(false,RESULT_OK);
         }
         config.apply();
         returnToMainActivity(true,RESULT_OK);
@@ -208,7 +210,7 @@ public class LoginActivity extends AppCompatActivity {
             showMessage(Strings.PasswordIsEmpty);
             return;
         }
-        ToolFunctions.signIn(email,password,handler);
+        ToolFunctions.signIn(getApplicationContext(),handler,email,password);
     }
     private void signUp(){
         String email = etEmail.getText().toString().trim();
@@ -230,7 +232,7 @@ public class LoginActivity extends AppCompatActivity {
             showMessage(Strings.PasswordNotEqualWithConfirmPassword);
             return;
         }
-        ToolFunctions.signUp(email,password,confirmPassword,handler);
+        ToolFunctions.signUp(getApplicationContext(),handler,email,password,confirmPassword);
     }
     private void readUserInfo(){
         if(isSignUp){   //如果是注册，停止读取用户数据

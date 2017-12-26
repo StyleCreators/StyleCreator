@@ -134,9 +134,9 @@ public class ToolFunctions {
      * @return 登录返回true
      */
     public static boolean checkLogin(Context context){
-//        if(context==null){
-//            return false;
-//        }
+        if(context==null){
+            return false;
+        }
         SharedPreferences sharedPreferences = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(TagAlreadySignIn,false);
     }
@@ -262,7 +262,10 @@ public class ToolFunctions {
         return mImgIds;
     }
 
-    public static long getCRC32(File file) {
+    public static long getCRC32(@NonNull File file) {
+        if(file==null){
+            return -1;
+        }
         CRC32 crc32 = new CRC32();
         FileInputStream fileInputStream = null;
         try {

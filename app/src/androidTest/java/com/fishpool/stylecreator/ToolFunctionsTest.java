@@ -3,16 +3,19 @@ package com.fishpool.stylecreator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
-
+import android.util.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 import static org.junit.Assert.*;
+import static com.fishpool.stylecreator.ConstValues.TAG;
 
-
+@LargeTest
 @RunWith(AndroidJUnit4.class)
-
 public class ToolFunctionsTest {
     @Test
     public void testGetLocalBitmap() throws Exception {
@@ -89,6 +92,22 @@ public class ToolFunctionsTest {
 
     @Test
     public void testGetCRC32() throws Exception{
-
+        //test1
+        File file = null;
+        long code = ToolFunctions.getCRC32(file);
+        assertEquals(code,-1);
+        //test2
+        file = new File("");
+        code = ToolFunctions.getCRC32(file);
+        assertEquals(code,-1);
+        //test3
+        file = new File("-499746926");
+        code = ToolFunctions.getCRC32(file);
+        assertEquals(code,-1);
+        //test4
+        file = new File("/storage/emulated/0/Download/index0.jpg");
+        code = ToolFunctions.getCRC32(file);
+        Log.d(TAG, "testGetCRC32: "+code);
+        assertEquals(code,3380774603L);
     }
 }

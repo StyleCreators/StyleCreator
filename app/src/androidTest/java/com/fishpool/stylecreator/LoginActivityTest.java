@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewInteraction;
+import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.suitebuilder.annotation.LargeTest;
 import android.util.Log;
 
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class LoginActivityTest {
     @BeforeClass
     public static void setUp(){
         Log.d(TAG, "setUp: ");
-        //写入一个用户信息
+        //
         Context context = InstrumentationRegistry.getTargetContext();
         SharedPreferences sp = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
@@ -50,6 +50,7 @@ public class LoginActivityTest {
         editor.apply();
     }
 
+    //启动界面
     @Before
     public void loadActivity(){
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -57,7 +58,30 @@ public class LoginActivityTest {
         intent.putExtra(LoginActivity.IS_SIGN_UP,false);//不是注册，是登录
         mActivityTestRule.launchActivity(intent);
     }
-    //错误的用户名和密码
+
+    //错误的用户名和错误的密码
+    @Test
+    public void loginActivityTest0() {
+        //操作UI
+        ViewInteraction appCompatEditText = onView(
+                allOf(withId(R.id.etEmail), isDisplayed()));
+        appCompatEditText.perform(replaceText("12@qq.com"), closeSoftKeyboard());
+
+        ViewInteraction appCompatEditText2 = onView(
+                allOf(withId(R.id.etPassword), isDisplayed()));
+        appCompatEditText2.perform(replaceText("12"), closeSoftKeyboard());
+
+        ViewInteraction appCompatButton = onView(
+                allOf(withId(R.id.btLogin), withText("登录"), isDisplayed()));
+        appCompatButton.perform(click());
+
+        //测试结果
+        Context context = InstrumentationRegistry.getTargetContext();
+        boolean isSignIn = ToolFunctions.checkLogin(context);
+        assertEquals(false,isSignIn);
+    }
+
+    //正确的用户名和错误的密码
     @Test
     public void loginActivityTest1() {
         //操作UI

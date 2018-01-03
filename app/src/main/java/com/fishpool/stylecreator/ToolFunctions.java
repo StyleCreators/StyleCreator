@@ -147,7 +147,9 @@ public class ToolFunctions {
         message.obj = Strings.SignInSucessfully;
 
         SharedPreferences sp = context.getSharedPreferences(CONFIG_LOGIN, Context.MODE_PRIVATE);
+        Log.d(TAG, "signIn: "+sp.getString(TagEmail,""));
         if(!email.equals(sp.getString(TagEmail,""))){
+            Log.d(TAG, "signIn: ");
             message.obj = Strings.UserNotExist;
         }else if(!password.equals(sp.getString(TagPassword,""))){
             message.obj = Strings.PasswordNotCorrect;

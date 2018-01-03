@@ -108,9 +108,11 @@ public class LoginActivity extends AppCompatActivity {
         public void afterTextChanged(Editable s) {
             switch (viewId){
                 case R.id.etEmail:
-                    config = preferences.edit();
-                    config.putString(TagEmail,s.toString().trim());
-                    config.apply();
+                    if(cbAutoLogin.isChecked() && !isSignUp) {
+                        config = preferences.edit();
+                        config.putString(TagEmail, s.toString().trim());
+                        config.apply();
+                    }
                     break;
                 case R.id.etPassword:
                     if(cbAutoLogin.isChecked() && isSignUp) {

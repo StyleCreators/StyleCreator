@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v) {
-                //TODO 这里怎么搞？暂时从本地读取风格化好的照片
                 loadStyledImage(v.getId());
             }
         });
@@ -190,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private void loadStyledImage(final int id){
         //根据id生成图片路径
-        //TODO 完成生成风格图片的代码之后，这里需要修改成getStyledPathPrefix
         String path = ToolFunctions.getStyledPathPrefix()+id;
         //String path = ToolFunctions.getOriginPathPrefix()+id;
         Bitmap bm = ToolFunctions.getLocalBitmap(path);
@@ -308,8 +306,6 @@ public class MainActivity extends AppCompatActivity {
     private void showBitmapFromMessageString(Message msg){
         m_loadingProgressbar.setVisibility(View.INVISIBLE);
         String path = (String) msg.obj;
-        //TODO
-        String pathCheate = "/storage/emulated/0/StyleCreator/zuobi.jpeg_";   //作弊
         m_imageView.setImageBitmap(ToolFunctions.getLocalBitmap(path));
     }
     private void showAndSaveBitmapFromMessageObj(Message msg){
